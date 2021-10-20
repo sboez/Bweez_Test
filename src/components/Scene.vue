@@ -5,10 +5,10 @@
 </template>
 
 <script>
-import Modal from './Modal.vue';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import Modal from './Modal.vue';
 
 export default {
 	name: 'Scene',
@@ -17,11 +17,12 @@ export default {
 	},
 	data() {
 		return {
-			isModalVisible: false,
 			scene: null,
 			camera: null,
 			controls: null,
 			renderer: null,
+			points: [null],
+			isModalVisible: false,
 			modalDescription: [
 				'Je suis le point 1 !',
 				'Le spoiler pour aller plus vite !',
@@ -45,7 +46,6 @@ export default {
 			await this.loadGltf('./models/street_car.glb');
 
 			document.body.appendChild(this.renderer.domElement);
-
 			this.animate();
 		},
 
@@ -53,7 +53,8 @@ export default {
 			this.mouse = new THREE.Vector2();
 
 			this.scene = new THREE.Scene();
-			this.scene.background = new THREE.Color(0xa0a0a0);
+			this.scene.background = new THREE.Color(0xf1f1f1);
+			this.scene.fog = new THREE.FogExp2(0xf1f1f1, 0.0015);
 
 			this.camera = new THREE.PerspectiveCamera(
 				45,
@@ -61,49 +62,41 @@ export default {
 				1,
 				1000
 			);
-			this.camera.position.set(0, 100, 200);
+			this.camera.position.set(0, 80, 180);
 
-			this.light = new THREE.HemisphereLight(0xffffff, 0x404040, 1);
-			this.scene.add(this.light);
+			this.hemLight = new THREE.HemisphereLight(0xffffff, 0x404040, 1);
+			this.scene.add(this.hemLight);
 
 			this.plane = new THREE.Mesh(
-				new THREE.PlaneBufferGeometry(200, 200),
+				new THREE.PlaneBufferGeometry(1000, 1000),
 				new THREE.MeshPhongMaterial({
 					color: 0xcfcfcf,
-					side: THREE.DoubleSide,
 				})
 			);
 			this.plane.rotation.x = -Math.PI / 2;
-			this.plane.receiveShadow = true;
 			this.scene.add(this.plane);
 
-			this.set3DPoints();
+			this.setPointsOfInterest();
 			this.setRaycaster();
 			this.eventListener();
 			this.setRenderer();
 			this.setControls();
 		},
 
-		set3DPoints() {
-			this.point1 = new THREE.Mesh(
-				new THREE.SphereGeometry(0.5, 6, 6),
+		setPointsOfInterest() {
+			this.customPoint = new THREE.Mesh(
+				new THREE.SphereGeometry(0.7, 12, 12),
 				new THREE.MeshBasicMaterial({ color: '#ff0000' })
 			);
-			this.point1.position.set(0, 15.5, 20);
 
-			this.point2 = new THREE.Mesh(
-				new THREE.SphereGeometry(0.5, 6, 6),
-				new THREE.MeshBasicMaterial({ color: '#ff0000' })
-			);
-			this.point2.position.set(0, 19.5, -29);
+			for (let i = 0; i < 3; ++i) {
+				this.points[i] = this.customPoint.clone();
+				this.scene.add(this.points[i]);
+			}
 
-			this.point3 = new THREE.Mesh(
-				new THREE.SphereGeometry(0.5, 6, 6),
-				new THREE.MeshBasicMaterial({ color: '#ff0000' })
-			);
-			this.point3.position.set(-15.5, 5, 16);
-
-			this.scene.add(this.point1, this.point2, this.point3);
+			this.points[0].position.set(0, 15.5, 20);
+			this.points[1].position.set(0, 19.5, -29);
+			this.points[2].position.set(-15.5, 5, 16);
 		},
 
 		setRaycaster() {
@@ -124,18 +117,17 @@ export default {
 			window.addEventListener('click', () => {
 				if (this.currentIntersect) {
 					this.showModal();
+
 					switch (this.currentIntersect.object) {
-						case this.point1:
+						case this.points[0]:
 							this.$refs.modal.showText(this.modalDescription[0]);
 							break;
 
-						case this.point2:
-							// this.showModal();
+						case this.points[1]:
 							this.$refs.modal.showText(this.modalDescription[1]);
 							break;
 
-						case this.point3:
-							// this.showModal();
+						case this.points[2]:
 							this.$refs.modal.showText(this.modalDescription[2]);
 							break;
 					}
@@ -153,7 +145,13 @@ export default {
 				this.camera,
 				this.renderer.domElement
 			);
-			this.controls.update();
+			this.controls.maxPolarAngle = Math.PI / 2;
+			this.controls.minPolarAngle = Math.PI / 3;
+			this.controls.enableDamping = true;
+			this.controls.dampingFactor = 0.2;
+			this.controls.maxDistance = 300;
+			this.controls.minDistance = 40;
+			this.controls.target = new THREE.Vector3(0, 15, 0);
 		},
 
 		loadGltf(path) {
@@ -161,12 +159,6 @@ export default {
 				const loader = new GLTFLoader();
 				loader.load(path, (gltf) => {
 					this.model = gltf.scene;
-					this.model.traverse((object) => {
-						if (object.isMesh) {
-							object.castShadow = true;
-							object.receiveShadow = true;
-						}
-					});
 					this.model.scale.multiplyScalar(40);
 					this.scene.add(this.model);
 					resolve(this.model);
@@ -184,12 +176,17 @@ export default {
 			this.controls.update();
 			this.raycaster.setFromCamera(this.mouse, this.camera);
 
-			const objectsToTest = [this.point1, this.point2, this.point3];
+			const objectsToTest = this.points;
 			const intersects = this.raycaster.intersectObjects(objectsToTest);
 
-			intersects.length
-				? (this.currentIntersect = intersects[0])
-				: (this.currentIntersect = null);
+			if (intersects.length) {
+				if (this.currentIntersect)
+					document.querySelector('html').style.cursor = 'pointer';
+				this.currentIntersect = intersects[0];
+			} else {
+				document.querySelector('html').style.cursor = 'default';
+				this.currentIntersect = null;
+			}
 
 			this.renderer.render(this.scene, this.camera);
 			requestAnimationFrame(this.animate.bind(this));

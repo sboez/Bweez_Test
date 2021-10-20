@@ -1,5 +1,9 @@
 <template>
-	<div class="container"></div>
+	<div class="container">
+		<div class="point point-1">
+			<div class="point__label">1</div>
+		</div>
+	</div>
 </template>
 
 <script>
@@ -113,3 +117,28 @@ export default {
 	},
 };
 </script>
+
+<style lang="scss">
+.point {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	&__label {
+		position: absolute;
+		top: -20px;
+		left: -20px;
+		width: 20px;
+		height: 20px;
+		border-radius: 50%;
+		background: #00000077;
+		border: 1px solid #ffffff77;
+		color: #ffffff;
+		font-family: Helvetica, Arial, sans-serif;
+		text-align: center;
+		line-height: 20px;
+		font-weight: 50;
+		font-size: 7px;
+		cursor: help;
+	}
+}
+</style>

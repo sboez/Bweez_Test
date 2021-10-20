@@ -1,29 +1,29 @@
 <template>
 	<div class="container">
-		<div
-			class="point point-1"
-			v-on:click.prevent="clickEvent('Hey I am the first point')"
-		>
+		<div class="point point-1" @click="showModal">
 			<div class="point__label">1</div>
 		</div>
-		<div
-			class="point point-2"
-			v-on:click.prevent="clickEvent('Hey ! I am the second point')"
-		>
+		<div class="point point-2" @click="showModal">
 			<div class="point__label">2</div>
 		</div>
+		<Modal v-show="isModalVisible" @close="closeModal" />
 	</div>
 </template>
 
 <script>
+import Modal from './Modal.vue';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 export default {
 	name: 'Scene',
+	components: {
+		Modal,
+	},
 	data() {
 		return {
+			isModalVisible: false,
 			scene: null,
 			camera: null,
 			controls: null,
@@ -31,6 +31,12 @@ export default {
 		};
 	},
 	methods: {
+		showModal() {
+			this.isModalVisible = true;
+		},
+		closeModal() {
+			this.isModalVisible = false;
+		},
 		async init() {
 			this.setScene();
 			await this.loadGltf('./models/street_car.glb');

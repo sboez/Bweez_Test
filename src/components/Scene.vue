@@ -5,6 +5,7 @@
 <script>
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 export default {
 	name: 'Scene',
@@ -17,8 +18,9 @@ export default {
 		};
 	},
 	methods: {
-		init() {
+		async init() {
 			this.setScene();
+			await this.loadGltf('./models/street_car.glb');
 
 			document.body.appendChild(this.renderer.domElement);
 			window.addEventListener(
@@ -76,6 +78,24 @@ export default {
 			this.controls.update();
 		},
 
+		loadGltf(path) {
+			return new Promise((resolve) => {
+				const loader = new GLTFLoader();
+				loader.load(path, (gltf) => {
+					this.model = gltf.scene;
+					this.model.traverse((object) => {
+						if (object.isMesh) {
+							object.castShadow = true;
+							object.receiveShadow = true;
+						}
+					});
+					this.model.scale.multiplyScalar(40);
+					this.scene.add(this.model);
+					resolve(this.model);
+				});
+			});
+		},
+
 		onWindowResize() {
 			this.camera.aspect = window.innerWidth / window.innerHeight;
 			this.camera.updateProjectionMatrix();
@@ -84,7 +104,6 @@ export default {
 
 		animate() {
 			this.controls.update();
-			// this.addIntersectionWithPoints();
 			this.renderer.render(this.scene, this.camera);
 			requestAnimationFrame(this.animate.bind(this));
 		},

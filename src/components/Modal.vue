@@ -68,19 +68,16 @@ export default {
 	flex-direction: column;
 }
 
-.modal-footer {
-	padding: 15px;
-	display: flex;
+.modal-body {
+	position: relative;
+	padding: 20px 10px;
 }
 
 .modal-footer {
 	border-top: 1px solid #eeeeee;
 	flex-direction: column;
-}
-
-.modal-body {
-	position: relative;
-	padding: 20px 10px;
+	padding: 15px;
+	display: flex;
 }
 
 .btn-green {

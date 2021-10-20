@@ -1,11 +1,5 @@
 <template>
 	<div class="container">
-		<div class="point point-1" @click="showModal()">
-			<div class="point__label">1</div>
-		</div>
-		<div class="point point-2" @click="showModal()">
-			<div class="point__label">2</div>
-		</div>
 		<Modal ref="modal" v-show="isModalVisible" @close="closeModal" />
 	</div>
 </template>
@@ -39,11 +33,14 @@ export default {
 		showModal() {
 			this.isModalVisible = true;
 		},
+
 		closeModal() {
 			this.isModalVisible = false;
 		},
+
 		async init() {
 			this.currentIntersect = null;
+
 			this.setScene();
 			await this.loadGltf('./models/street_car.glb');
 
@@ -126,19 +123,19 @@ export default {
 
 			window.addEventListener('click', () => {
 				if (this.currentIntersect) {
+					this.showModal();
 					switch (this.currentIntersect.object) {
 						case this.point1:
-							this.showModal();
 							this.$refs.modal.showText(this.modalDescription[0]);
 							break;
 
 						case this.point2:
-							this.showModal();
+							// this.showModal();
 							this.$refs.modal.showText(this.modalDescription[1]);
 							break;
 
 						case this.point3:
-							this.showModal();
+							// this.showModal();
 							this.$refs.modal.showText(this.modalDescription[2]);
 							break;
 					}
@@ -203,34 +200,3 @@ export default {
 	},
 };
 </script>
-
-<style lang="scss">
-.point {
-	position: absolute;
-	&-1 {
-		top: 50%;
-		left: 50%;
-	}
-	&-2 {
-		top: 55%;
-		left: 45%;
-	}
-	&__label {
-		position: absolute;
-		top: -20px;
-		left: -20px;
-		width: 20px;
-		height: 20px;
-		border-radius: 50%;
-		background: #00000077;
-		border: 1px solid #ffffff77;
-		color: #ffffff;
-		font-family: Helvetica, Arial, sans-serif;
-		text-align: center;
-		line-height: 20px;
-		font-weight: 50;
-		font-size: 7px;
-		cursor: help;
-	}
-}
-</style>

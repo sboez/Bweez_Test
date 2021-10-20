@@ -1,9 +1,17 @@
 <script>
 export default {
 	name: 'Modal',
+	data() {
+		return {
+			text: null,
+		};
+	},
 	methods: {
 		close() {
 			this.$emit('close');
+		},
+		showText(description) {
+			this.text = description;
 		},
 	},
 };
@@ -20,7 +28,7 @@ export default {
 			>
 				<section class="modal-body" id="modalDescription">
 					<slot name="body">
-						I am a point
+						{{ text }}
 					</slot>
 				</section>
 
@@ -73,19 +81,6 @@ export default {
 .modal-body {
 	position: relative;
 	padding: 20px 10px;
-}
-
-.btn-close {
-	position: absolute;
-	top: 0;
-	right: 0;
-	border: none;
-	font-size: 20px;
-	padding: 10px;
-	cursor: pointer;
-	font-weight: bold;
-	color: #4aae9b;
-	background: transparent;
 }
 
 .btn-green {

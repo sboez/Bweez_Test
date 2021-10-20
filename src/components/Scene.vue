@@ -6,7 +6,7 @@
 		<div class="point point-2" @click="showModal()">
 			<div class="point__label">2</div>
 		</div>
-		<Modal v-show="isModalVisible" @close="closeModal" />
+		<Modal ref="modal" v-show="isModalVisible" @close="closeModal" />
 	</div>
 </template>
 
@@ -28,6 +28,11 @@ export default {
 			camera: null,
 			controls: null,
 			renderer: null,
+			modalDescription: [
+				'Je suis le point 1 !',
+				'Le spoiler pour aller plus vite !',
+				'Les jantes 18"',
+			],
 		};
 	},
 	methods: {
@@ -124,14 +129,17 @@ export default {
 					switch (this.currentIntersect.object) {
 						case this.point1:
 							this.showModal();
+							this.$refs.modal.showText(this.modalDescription[0]);
 							break;
 
 						case this.point2:
 							this.showModal();
+							this.$refs.modal.showText(this.modalDescription[1]);
 							break;
 
 						case this.point3:
 							this.showModal();
+							this.$refs.modal.showText(this.modalDescription[2]);
 							break;
 					}
 				}

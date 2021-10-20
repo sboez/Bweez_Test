@@ -1,9 +1,9 @@
 <template>
 	<div class="container">
-		<div class="point point-1" @click="showModal">
+		<div class="point point-1" @click="showModal()">
 			<div class="point__label">1</div>
 		</div>
-		<div class="point point-2" @click="showModal">
+		<div class="point point-2" @click="showModal()">
 			<div class="point__label">2</div>
 		</div>
 		<Modal v-show="isModalVisible" @close="closeModal" />
@@ -38,20 +38,18 @@ export default {
 			this.isModalVisible = false;
 		},
 		async init() {
+			this.currentIntersect = null;
 			this.setScene();
 			await this.loadGltf('./models/street_car.glb');
 
 			document.body.appendChild(this.renderer.domElement);
-			window.addEventListener(
-				'resize',
-				this.onWindowResize.bind(this),
-				false
-			);
 
 			this.animate();
 		},
 
 		setScene() {
+			this.mouse = new THREE.Vector2();
+
 			this.scene = new THREE.Scene();
 			this.scene.background = new THREE.Color(0xa0a0a0);
 
@@ -62,6 +60,9 @@ export default {
 				1000
 			);
 			this.camera.position.set(0, 100, 200);
+
+			this.light = new THREE.HemisphereLight(0xffffff, 0x404040, 1);
+			this.scene.add(this.light);
 
 			this.plane = new THREE.Mesh(
 				new THREE.PlaneBufferGeometry(200, 200),
@@ -74,14 +75,67 @@ export default {
 			this.plane.receiveShadow = true;
 			this.scene.add(this.plane);
 
-			this.setLights();
+			this.set3DPoints();
+			this.setRaycaster();
+			this.eventListener();
 			this.setRenderer();
 			this.setControls();
 		},
 
-		setLights() {
-			this.light = new THREE.HemisphereLight(0xffffff, 0x404040, 1);
-			this.scene.add(this.light);
+		set3DPoints() {
+			this.point1 = new THREE.Mesh(
+				new THREE.SphereGeometry(0.5, 6, 6),
+				new THREE.MeshBasicMaterial({ color: '#ff0000' })
+			);
+			this.point1.position.set(0, 15.5, 20);
+
+			this.point2 = new THREE.Mesh(
+				new THREE.SphereGeometry(0.5, 6, 6),
+				new THREE.MeshBasicMaterial({ color: '#ff0000' })
+			);
+			this.point2.position.set(0, 19.5, -29);
+
+			this.point3 = new THREE.Mesh(
+				new THREE.SphereGeometry(0.5, 6, 6),
+				new THREE.MeshBasicMaterial({ color: '#ff0000' })
+			);
+			this.point3.position.set(-15.5, 5, 16);
+
+			this.scene.add(this.point1, this.point2, this.point3);
+		},
+
+		setRaycaster() {
+			this.raycaster = new THREE.Raycaster();
+			this.currentIntersect = null;
+			this.rayDirection = new THREE.Vector3(10, 0, 0);
+			this.rayDirection.normalize();
+		},
+
+		eventListener() {
+			window.addEventListener('resize', this.onWindowResize, false);
+
+			window.addEventListener('mousemove', (event) => {
+				this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+				this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+			});
+
+			window.addEventListener('click', () => {
+				if (this.currentIntersect) {
+					switch (this.currentIntersect.object) {
+						case this.point1:
+							this.showModal();
+							break;
+
+						case this.point2:
+							this.showModal();
+							break;
+
+						case this.point3:
+							this.showModal();
+							break;
+					}
+				}
+			});
 		},
 
 		setRenderer() {
@@ -115,10 +169,6 @@ export default {
 			});
 		},
 
-		clickEvent(text) {
-			alert(text);
-		},
-
 		onWindowResize() {
 			this.camera.aspect = window.innerWidth / window.innerHeight;
 			this.camera.updateProjectionMatrix();
@@ -127,6 +177,15 @@ export default {
 
 		animate() {
 			this.controls.update();
+			this.raycaster.setFromCamera(this.mouse, this.camera);
+
+			const objectsToTest = [this.point1, this.point2, this.point3];
+			const intersects = this.raycaster.intersectObjects(objectsToTest);
+
+			intersects.length
+				? (this.currentIntersect = intersects[0])
+				: (this.currentIntersect = null);
+
 			this.renderer.render(this.scene, this.camera);
 			requestAnimationFrame(this.animate.bind(this));
 		},

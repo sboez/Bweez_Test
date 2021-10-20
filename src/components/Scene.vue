@@ -1,6 +1,6 @@
 <template>
 	<div class="container">
-		<div class="point point-1">
+		<div class="point point-1" v-on:click.prevent="clickEvent('point 1')">
 			<div class="point__label">1</div>
 		</div>
 	</div>
@@ -98,6 +98,10 @@ export default {
 					resolve(this.model);
 				});
 			});
+		},
+
+		clickEvent(text) {
+			alert(text);
 		},
 
 		onWindowResize() {

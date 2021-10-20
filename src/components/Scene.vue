@@ -1,7 +1,16 @@
 <template>
 	<div class="container">
-		<div class="point point-1" v-on:click.prevent="clickEvent('point 1')">
+		<div
+			class="point point-1"
+			v-on:click.prevent="clickEvent('Hey I am the first point')"
+		>
 			<div class="point__label">1</div>
+		</div>
+		<div
+			class="point point-2"
+			v-on:click.prevent="clickEvent('Hey ! I am the second point')"
+		>
+			<div class="point__label">2</div>
 		</div>
 	</div>
 </template>
@@ -125,8 +134,14 @@ export default {
 <style lang="scss">
 .point {
 	position: absolute;
-	top: 50%;
-	left: 50%;
+	&-1 {
+		top: 50%;
+		left: 50%;
+	}
+	&-2 {
+		top: 55%;
+		left: 45%;
+	}
 	&__label {
 		position: absolute;
 		top: -20px;
